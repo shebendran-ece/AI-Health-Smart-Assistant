@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pulseline — AI Health Smart Assistant</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Source+Serif+4:ital,wght@0,400;0,500;0,600;1,400&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<header class="topbar">
+  <div class="wrap topbar-inner">
+    <div class="brand"><span class="brand-dot"></span> Pulseline</div>
+    <nav class="pills">
+      <a href="#assistant">Symptom check</a>
+      <a href="#vitals">Vitals</a>
+      <a href="#bmi">BMI</a>
+      <a href="#habits">Habits</a>
+    </nav>
+  </div>
+</header>
+
+<div class="wrap">
+  <section class="hero">
+    <p class="eyebrow">// AI Health Smart Assistant · Spring Boot + MySQL + Gemini</p>
+    <h1>Read your own vital signs before they read you.</h1>
+    <p class="lede">A calm place to log symptoms, track vitals, and build the small habits that keep a body running well — backed by a real database and Google's Gemini model, which always tells you when it's time to see a clinician.</p>
+
+    <div class="pulse-strip" aria-hidden="true">
+      <svg viewBox="0 0 800 86" preserveAspectRatio="none">
+        <path class="pulse-path" d="M0,43 L120,43 L145,43 L160,10 L180,78 L200,20 L215,43 L340,43 L360,43 L378,15 L395,68 L412,30 L428,43 L800,43" />
+      </svg>
+    </div>
+
+    <div class="snapshot" id="snapshot">
+      <div class="snap-cell"><div class="k">Water today</div><div class="v" id="snapWater">0<span>/8 cups</span></div></div>
+      <div class="snap-cell"><div class="k">Last reading</div><div class="v" id="snapVital">—</div></div>
+      <div class="snap-cell"><div class="k">Meds pending</div><div class="v" id="snapMeds">0</div></div>
+      <div class="snap-cell"><div class="k">BMI</div><div class="v" id="snapBmi">—</div></div>
+    </div>
+  </section>
+
+  <section class="module" id="assistant">
+    <div class="module-head"><h2>Symptom assistant</h2><span class="module-tag">Gemini AI · not a diagnosis</span></div>
+    <p class="module-sub">Describe how you're feeling in plain words. Messages go to the backend, which checks for emergency red flags first, then asks Gemini for general guidance.</p>
+    <div class="card chat">
+      <div class="chat-log" id="chatLog"></div>
+      <div class="chip-row" id="chipRow"></div>
+      <div class="chat-input-row">
+        <input type="text" id="chatInput" placeholder="e.g. I've had a mild headache since this morning" aria-label="Describe your symptom">
+        <button class="primary" id="chatSend">Send</button>
+      </div>
+    </div>
+  </section>
+
+  <div class="grid-2">
+    <section class="module" id="vitals">
+      <div class="module-head"><h2>Vitals log</h2><span class="module-tag">Stored in MySQL</span></div>
+      <p class="module-sub">Log a reading and the backend flags it against general reference ranges for adults.</p>
+      <div class="card">
+        <div class="vital-form">
+          <div class="field">
+            <label for="vType">Reading</label>
+            <select id="vType">
+              <option value="bp">Blood pressure (systolic)</option>
+              <option value="hr">Resting heart rate (bpm)</option>
+              <option value="temp">Temperature (°C)</option>
+              <option value="spo2">Oxygen saturation (%)</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="vVal">Value</label>
+            <input type="number" id="vVal" step="0.1" placeholder="e.g. 120">
+          </div>
+        </div>
+        <button class="primary" id="vAdd">Log reading</button>
+        <ul class="vital-log" id="vitalLog"></ul>
+      </div>
+    </section>
+
+    <section class="module" id="bmi">
+      <div class="module-head"><h2>BMI calculator</h2><span class="module-tag">Client-side</span></div>
+      <p class="module-sub">A rough screening number, not a full picture of health.</p>
+      <div class="card">
+        <div class="vital-form">
+          <div class="field"><label for="bHeight">Height (cm)</label><input type="number" id="bHeight" placeholder="170"></div>
+          <div class="field"><label for="bWeight">Weight (kg)</label><input type="number" id="bWeight" placeholder="65"></div>
+        </div>
+        <button class="primary" id="bCalc">Calculate</button>
+        <div class="bmi-result" id="bmiResult" style="display:none;">
+          <div class="bmi-num" id="bmiNum">—</div>
+          <div class="bmi-band" id="bmiBand">—</div>
+          <div class="bmi-bar"><div class="bmi-marker" id="bmiMarker" style="left:0%"></div></div>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <section class="module" id="habits">
+    <div class="module-head"><h2>Daily habits</h2><span class="module-tag">Stored in MySQL</span></div>
+    <p class="module-sub">Small, repeatable checks matter more than any single reading.</p>
+    <div class="grid-2">
+      <div class="card">
+        <div class="tracker-row">
+          <div>
+            <div style="font-family:'Space Grotesk'; font-weight:600;">Water intake</div>
+            <div class="mono" style="color:var(--fog); font-size:0.8rem; margin-top:2px;" id="waterLabel">0 of 8 cups</div>
+          </div>
+          <div class="drop-track" id="dropTrack"></div>
+        </div>
+      </div>
+      <div class="card">
+        <ul class="med-list" id="medList"></ul>
+        <div class="add-med-row">
+          <input type="text" id="medName" placeholder="Medication name">
+          <input type="text" id="medTime" placeholder="Time, e.g. 8:00 AM" style="max-width:130px;">
+          <button class="ghost" id="medAdd">Add</button>
+        </div>
+      </div>
+    </div>
+  </section>
+</div>
+
+<footer>
+  <div class="wrap">
+    <div class="disclaimer">
+      <strong>Not medical advice.</strong> Pulseline is a self-tracking tool. It cannot examine you, run tests, or diagnose conditions. For anything severe, sudden, or worsening — or if you're ever unsure — contact a doctor or local emergency services rather than relying on this assistant.
+    </div>
+    <div class="fine">Pulseline — AI Health Smart Assistant · Spring Boot + MySQL + Gemini AI.</div>
+  </div>
+</footer>
+
+<script src="js/app.js"></script>
+</body>
+</html>
